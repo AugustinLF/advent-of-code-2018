@@ -1,0 +1,9 @@
+[package]
+name = "advent-of-code-2018"
+version = "0.1.0"
+authors = ["Augustin Le Fèvre <aulefevre@kilix.fr>"]
+
+[dependencies]
+
+[lib]
+doctest = false
