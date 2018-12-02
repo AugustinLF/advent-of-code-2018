@@ -1,6 +1,5 @@
 use std::collections::HashMap;
-use std::fs::File;
-use std::io::prelude::*;
+use std::fs;
 
 fn get_product_checksum(id: &str) -> (i32, i32) {
     let mut doubles = 0;
@@ -23,7 +22,7 @@ fn get_product_checksum(id: &str) -> (i32, i32) {
     return (doubles, triplets);
 }
 
-fn calculate_checksum(ids: Vec<&str>) -> i32 {
+fn calculate_checksum(ids: Vec<String>) -> i32 {
     let val = ids.iter().map(|id| get_product_checksum(id)).fold(
         (0, 0),
         |acc, (doubles, triplets)| {
@@ -33,17 +32,18 @@ fn calculate_checksum(ids: Vec<&str>) -> i32 {
     return val.0 * val.1;
 }
 
-pub fn solve_exercise() -> i32 {
-    let mut f = File::open("./inputs/input2").expect("file not found");
-
-    let mut content = String::new();
-    f.read_to_string(&mut content)
-        .expect("something went wrong reading the file");
+fn get_ids(file_name: &str) -> Vec<String> {
+    let content = fs::read_to_string(file_name).unwrap();
     let split_ids = content.trim().split_whitespace();
-    let mut ids: Vec<&str> = Vec::new();
+    let mut ids = Vec::new();
     for id in split_ids {
-        ids.push(id);
+        ids.push(id.to_string());
     }
+    return ids;
+}
+
+pub fn solve_exercise_1() -> i32 {
+    let ids = get_ids("./inputs/input2");
 
     return calculate_checksum(ids);
 }
@@ -65,14 +65,18 @@ mod tests {
     fn checksum_of_list() {
         assert_eq!(
             12,
-            calculate_checksum(vec![
-                "abcdef", "bababc", "abbcde", "abcccd", "aabcdd", "abcdee", "ababab",
-            ])
+            calculate_checksum(
+                (vec![
+                    "abcdef", "bababc", "abbcde", "abcccd", "aabcdd", "abcdee", "ababab",
+                ]).iter()
+                    .map(|str| str.to_string())
+                    .collect()
+            )
         )
     }
 
     #[test]
     fn exercise_1() {
-        assert_eq!(5478, solve_exercise())
+        assert_eq!(5478, solve_exercise_1())
     }
 }
