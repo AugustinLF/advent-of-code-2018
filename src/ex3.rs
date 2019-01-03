@@ -13,6 +13,7 @@ impl<'a> PartialEq for Claim<'a> {
     }
 }
 
+// learn regex, maybe?
 fn parse_claim<'a>(claim: &'a str) -> Claim<'a> {
     let mut split_str = claim.split_whitespace();
 
@@ -42,7 +43,7 @@ fn parse_claim<'a>(claim: &'a str) -> Claim<'a> {
     }
 }
 
-fn get_covered_fabric(claim: &Claim, mut fabric: HashMap<String, u16>) -> HashMap<String, u16> {
+fn set_covered_fabric(claim: &Claim, fabric: &mut HashMap<String, u16>) {
     let mut x = claim.coordinates.0;
     while x < claim.coordinates.0 + claim.size.0 {
         let mut y = claim.coordinates.1;
@@ -54,28 +55,21 @@ fn get_covered_fabric(claim: &Claim, mut fabric: HashMap<String, u16>) -> HashMa
         }
         x += 1;
     }
+}
+
+fn get_covered_fabric_for_claims(claims: &mut Vec<Claim>) -> HashMap<String, u16> {
+    let mut fabric: HashMap<String, u16> = HashMap::new();
+    for claim in claims {
+        set_covered_fabric(&claim, &mut fabric);
+    }
     return fabric;
 }
 
-fn get_covered_fabric_for_claims(
-    mut claims: Vec<Claim>,
-    fabric: HashMap<String, u16>,
-) -> (HashMap<String, u16>, Vec<Claim>) {
-    return match claims.pop() {
-        Some(claim) => {
-            let (fabric, mut claims) =
-                get_covered_fabric_for_claims(claims, get_covered_fabric(&claim, fabric));
-            claims.push(claim);
-            return (fabric, claims);
-        }
-        None => (fabric, Vec::new()),
-    };
-}
+fn find_fabric_for_claims(mut claims: Vec<Claim>) -> u32 {
+    let fabric = get_covered_fabric_for_claims(&mut claims);
 
-fn find_fabric_for_claims(claims: Vec<Claim>) -> u32 {
-    let (fabric, _) = get_covered_fabric_for_claims(claims, HashMap::new());
     let mut count = 0;
-    for (_, &times_covered) in fabric.iter() {
+    for (_, times_covered) in fabric {
         if times_covered >= 2 {
             count += 1;
         }
@@ -100,8 +94,8 @@ fn is_claim_overlapped(claim: &Claim, fabric: &HashMap<String, u16>) -> bool {
     return is_overlapped;
 }
 
-fn find_claim_with_no_overlap<'a>(claims: Vec<Claim<'a>>) -> &'a str {
-    let (fabric, claims) = get_covered_fabric_for_claims(claims, HashMap::new());
+fn find_claim_with_no_overlap<'a>(mut claims: Vec<Claim<'a>>) -> &'a str {
+    let fabric = get_covered_fabric_for_claims(&mut claims);
 
     for claim in claims {
         let is_overlapped = is_claim_overlapped(&claim, &fabric);
@@ -213,23 +207,23 @@ mod test {
 
     #[test]
     fn covered_fabric() {
+        let mut expected_map = HashMap::new();
+        expected_map.insert(String::from("3,2"), 1);
+        expected_map.insert(String::from("3,3"), 1);
+        expected_map.insert(String::from("4,2"), 1);
+        expected_map.insert(String::from("5,2"), 1);
+        expected_map.insert(String::from("4,3"), 1);
+        expected_map.insert(String::from("5,3"), 1);
         let mut map = HashMap::new();
-        map.insert(String::from("3,2"), 1);
-        map.insert(String::from("3,3"), 1);
-        map.insert(String::from("4,2"), 1);
-        map.insert(String::from("5,2"), 1);
-        map.insert(String::from("4,3"), 1);
-        map.insert(String::from("5,3"), 1);
-        assert_eq!(
-            map,
-            get_covered_fabric(
-                &(Claim {
-                    id: "123",
-                    coordinates: (3, 2),
-                    size: (3, 2)
-                }),
-                HashMap::new()
-            )
-        )
+        set_covered_fabric(
+            &(Claim {
+                id: "123",
+                coordinates: (3, 2),
+                size: (3, 2),
+            }),
+            &mut map,
+        );
+
+        assert_eq!(expected_map, map)
     }
 }
