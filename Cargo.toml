@@ -4,6 +4,7 @@ version = "0.1.0"
 authors = ["Augustin Le Fèvre <aulefevre@kilix.fr>"]
 
 [dependencies]
+chrono = "0.4"
 
 [lib]
 doctest = false
