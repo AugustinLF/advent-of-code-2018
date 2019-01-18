@@ -34,9 +34,6 @@ fn polymer_react_once(mut polymer: LinkedList<char>) -> LinkedList<char> {
 fn polymer_react(mut polymer: LinkedList<char>) -> LinkedList<char> {
     let mut initial_length = polymer.len();
     loop {
-        if initial_length % 100 == 0 {
-            println!("{}", initial_length);
-        }
         let polymer_after_reaction = polymer_react_once(polymer);
 
         if polymer_after_reaction.len() == initial_length {
@@ -53,6 +50,30 @@ pub fn exercise_5_1() -> usize {
     return polymer.len();
 }
 
+fn remove_unit_and_react_polymer(polymer: &str, unit_to_remove: char) -> usize {
+    let filtered_polymer = polymer
+        .chars()
+        .filter(|unit| unit.to_ascii_lowercase() != unit_to_remove.to_ascii_lowercase());
+    polymer_react(LinkedList::from_iter(filtered_polymer)).len()
+}
+
+pub fn exercise_5_2() -> usize {
+    let content = fs::read_to_string("./inputs/input5").unwrap();
+    let content = content.trim();
+    let alphabet = vec![
+        'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r',
+        's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
+    ];
+    alphabet.iter().fold(std::usize::MAX, |smallest, &unit| {
+        let polymer_length = remove_unit_and_react_polymer(content, unit);
+        if polymer_length < smallest {
+            polymer_length
+        } else {
+            smallest
+        }
+    })
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -61,6 +82,20 @@ mod test {
     fn solve_exercise_5_1() {
         assert_eq!(exercise_5_1(), 9822);
     }
+
+    #[test]
+    fn solve_exercise_5_2() {
+        assert_eq!(exercise_5_2(), 9822);
+    }
+
+    #[test]
+    fn remove() {
+        assert_eq!(remove_unit_and_react_polymer("dabAcCaCBAcCcaDA", 'a'), 6);
+        assert_eq!(remove_unit_and_react_polymer("dabAcCaCBAcCcaDA", 'b'), 8);
+        assert_eq!(remove_unit_and_react_polymer("dabAcCaCBAcCcaDA", 'c'), 4);
+        assert_eq!(remove_unit_and_react_polymer("dabAcCaCBAcCcaDA", 'd'), 6);
+    }
+
     #[test]
     fn test_react_polymer() {
         assert_eq!(react_polymer_from_string("aA"), LinkedList::new());
