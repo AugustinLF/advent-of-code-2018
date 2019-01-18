@@ -1,28 +1,29 @@
+use std::collections::LinkedList;
 use std::fs;
+use std::iter::FromIterator;
 
-fn react_polymer_from_string(polymer: &str) -> Vec<char> {
-    let polymer: Vec<char> = polymer.chars().collect();
+fn react_polymer_from_string(polymer: &str) -> LinkedList<char> {
+    let polymer: LinkedList<char> = LinkedList::from_iter(polymer.chars());
     return polymer_react(polymer);
 }
 
-fn polymer_react_once(mut polymer: Vec<char>) -> Vec<char> {
-    let mut reacted_polymer: Vec<char> = Vec::new();
-    while polymer.len() > 0 {
-        let unit = polymer.remove(0);
-        match polymer.first() {
+fn polymer_react_once(mut polymer: LinkedList<char>) -> LinkedList<char> {
+    let mut reacted_polymer: LinkedList<char> = LinkedList::new();
+    while let Some(unit) = polymer.pop_front() {
+        match polymer.front() {
             Some(&first_unit) => {
                 if first_unit != unit
                     && first_unit.to_ascii_lowercase() == unit.to_ascii_lowercase()
                 {
-                    polymer.remove(0);
+                    polymer.pop_front();
                     reacted_polymer.append(&mut polymer);
                     return reacted_polymer;
                 } else {
-                    reacted_polymer.push(unit);
+                    reacted_polymer.push_back(unit);
                 }
             }
             None => {
-                reacted_polymer.push(unit);
+                reacted_polymer.push_back(unit);
                 return reacted_polymer;
             }
         }
@@ -30,7 +31,7 @@ fn polymer_react_once(mut polymer: Vec<char>) -> Vec<char> {
     return reacted_polymer;
 }
 
-fn polymer_react(mut polymer: Vec<char>) -> Vec<char> {
+fn polymer_react(mut polymer: LinkedList<char>) -> LinkedList<char> {
     let mut initial_length = polymer.len();
     loop {
         if initial_length % 100 == 0 {
@@ -62,19 +63,31 @@ mod test {
     }
     #[test]
     fn test_react_polymer() {
-        assert_eq!(react_polymer_from_string("aA"), Vec::new());
-        assert_eq!(react_polymer_from_string("abBA"), Vec::new());
-        assert_eq!(react_polymer_from_string("ab"), vec!['a', 'b']);
-        assert_eq!(react_polymer_from_string("abAB"), vec!['a', 'b', 'A', 'B']);
-        assert_eq!(react_polymer_from_string("a"), vec!['a']);
-        assert_eq!(react_polymer_from_string("aAa"), vec!['a']);
+        assert_eq!(react_polymer_from_string("aA"), LinkedList::new());
+        assert_eq!(react_polymer_from_string("abBA"), LinkedList::new());
+        assert_eq!(
+            react_polymer_from_string("ab"),
+            LinkedList::from_iter(vec!['a', 'b'])
+        );
+        assert_eq!(
+            react_polymer_from_string("abAB"),
+            LinkedList::from_iter(vec!['a', 'b', 'A', 'B'])
+        );
+        assert_eq!(
+            react_polymer_from_string("a"),
+            LinkedList::from_iter(vec!['a'])
+        );
+        assert_eq!(
+            react_polymer_from_string("aAa"),
+            LinkedList::from_iter(vec!['a'])
+        );
         assert_eq!(
             react_polymer_from_string("aabAAB"),
-            vec!['a', 'a', 'b', 'A', 'A', 'B']
+            LinkedList::from_iter(vec!['a', 'a', 'b', 'A', 'A', 'B'])
         );
         assert_eq!(
             react_polymer_from_string("dabAcCaCBAcCcaDA"),
-            vec!['d', 'a', 'b', 'C', 'B', 'A', 'c', 'a', 'D', 'A']
+            LinkedList::from_iter(vec!['d', 'a', 'b', 'C', 'B', 'A', 'c', 'a', 'D', 'A'])
         );
     }
 }
